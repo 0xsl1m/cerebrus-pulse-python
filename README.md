@@ -89,6 +89,10 @@ except CerebrusPulseError as e:
 - [OpenAPI Spec](https://pulse.openclaw.ai/openapi.yaml)
 - [MCP Server](https://github.com/0xsl1m/cerebrus-pulse-mcp) — Use with Claude Desktop, Cursor, etc.
 
+## Disclaimer
+
+Cerebrus Pulse provides market data and technical indicators for **informational purposes only**. Nothing provided by this SDK or the underlying API constitutes financial advice, investment advice, or trading advice. AI-generated analysis, signals, and sentiment labels are algorithmic outputs — not recommendations to buy, sell, or hold any asset. Cryptocurrency trading involves substantial risk of loss. You are solely responsible for your own trading decisions.
+
 ## License
 
 MIT
