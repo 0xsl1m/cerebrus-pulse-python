@@ -253,6 +253,170 @@ class FundingResponse:
 
 
 @dataclass
+class OIData:
+    current: float
+    delta_1h: float
+    delta_4h: float
+    delta_24h: float
+    percentile: float | None
+    trend: str
+    price_oi_divergence: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> OIData:
+        return cls(
+            current=d.get("current", 0),
+            delta_1h=d.get("delta_1h", 0),
+            delta_4h=d.get("delta_4h", 0),
+            delta_24h=d.get("delta_24h", 0),
+            percentile=d.get("percentile"),
+            trend=d.get("trend", "FLAT"),
+            price_oi_divergence=d.get("price_oi_divergence", "NONE"),
+        )
+
+
+@dataclass
+class OIResponse:
+    coin: str
+    timestamp_iso: str
+    open_interest: OIData
+    price: float | None
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> OIResponse:
+        return cls(
+            coin=d.get("coin", ""),
+            timestamp_iso=d.get("timestamp_iso", ""),
+            open_interest=OIData.from_dict(d.get("open_interest", {})),
+            price=d.get("price"),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
+class SpreadData:
+    bid_ask_spread_bps: float
+    impact_bid: float
+    impact_ask: float
+    mid_price: float
+    estimated_slippage_bps: dict[str, float]
+    liquidity_score: int
+
+    @classmethod
+    def from_dict(cls, d: dict) -> SpreadData:
+        return cls(
+            bid_ask_spread_bps=d.get("bid_ask_spread_bps", 0),
+            impact_bid=d.get("impact_bid", 0),
+            impact_ask=d.get("impact_ask", 0),
+            mid_price=d.get("mid_price", 0),
+            estimated_slippage_bps=d.get("estimated_slippage_bps", {}),
+            liquidity_score=d.get("liquidity_score", 0),
+        )
+
+
+@dataclass
+class SpreadResponse:
+    coin: str
+    timestamp_iso: str
+    spread: SpreadData
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> SpreadResponse:
+        return cls(
+            coin=d.get("coin", ""),
+            timestamp_iso=d.get("timestamp_iso", ""),
+            spread=SpreadData.from_dict(d.get("spread", {})),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
+class CorrelationResponse:
+    timestamp_iso: str
+    btc_correlation: dict[str, float | None]
+    average_correlation: float | None
+    regime: str
+    sector_averages: dict[str, float]
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> CorrelationResponse:
+        return cls(
+            timestamp_iso=d.get("timestamp_iso", ""),
+            btc_correlation=d.get("btc_correlation", {}),
+            average_correlation=d.get("average_correlation"),
+            regime=d.get("regime", "UNKNOWN"),
+            sector_averages=d.get("sector_averages", {}),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
+class ScreenerCoin:
+    coin: str
+    signal_strength: float
+    rsi_14: float | None
+    rsi_zone: str
+    trend: str
+    zscore: float | None
+    atr_pct: float | None
+    vol_regime: str
+    funding_rate: float | None
+    funding_bias: str
+    confluence_bias: str
+    confluence_score: float
+    oi_trend: str
+    price: float | None = None
+
+    @classmethod
+    def from_dict(cls, d: dict) -> ScreenerCoin:
+        return cls(
+            coin=d.get("coin", ""),
+            signal_strength=d.get("signal_strength", 0),
+            rsi_14=d.get("rsi_14"),
+            rsi_zone=d.get("rsi_zone", "unknown"),
+            trend=d.get("trend", "unknown"),
+            zscore=d.get("zscore"),
+            atr_pct=d.get("atr_pct"),
+            vol_regime=d.get("vol_regime", "UNKNOWN"),
+            funding_rate=d.get("funding_rate"),
+            funding_bias=d.get("funding_bias", "neutral"),
+            confluence_bias=d.get("confluence_bias", "unknown"),
+            confluence_score=d.get("confluence_score", 0),
+            oi_trend=d.get("oi_trend", "FLAT"),
+            price=d.get("price"),
+        )
+
+
+@dataclass
+class ScreenerResponse:
+    coins_scanned: int
+    top_n: int
+    results: list[ScreenerCoin]
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> ScreenerResponse:
+        results = [ScreenerCoin.from_dict(r) for r in d.get("results", [])]
+        return cls(
+            coins_scanned=d.get("coins_scanned", 0),
+            top_n=d.get("top_n", 0),
+            results=results,
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
 class BundleResponse:
     coin: str
     timestamp_iso: str

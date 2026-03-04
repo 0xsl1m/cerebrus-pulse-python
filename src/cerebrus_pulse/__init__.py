@@ -6,6 +6,10 @@ from cerebrus_pulse.models import (
     SentimentResponse,
     FundingResponse,
     BundleResponse,
+    OIResponse,
+    SpreadResponse,
+    CorrelationResponse,
+    ScreenerResponse,
     Confluence,
     Regime,
     Derivatives,
@@ -14,13 +18,17 @@ from cerebrus_pulse.models import (
     Bollinger,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "CerebrusPulse",
     "PulseResponse",
     "SentimentResponse",
     "FundingResponse",
     "BundleResponse",
+    "OIResponse",
+    "SpreadResponse",
+    "CorrelationResponse",
+    "ScreenerResponse",
     "Confluence",
     "Regime",
     "Derivatives",

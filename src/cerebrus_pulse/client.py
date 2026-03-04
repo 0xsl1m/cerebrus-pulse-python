@@ -9,6 +9,10 @@ from cerebrus_pulse.models import (
     SentimentResponse,
     FundingResponse,
     BundleResponse,
+    OIResponse,
+    SpreadResponse,
+    CorrelationResponse,
+    ScreenerResponse,
 )
 
 DEFAULT_BASE_URL = "https://pulse.openclaw.ai"
@@ -152,3 +156,48 @@ class CerebrusPulse:
         """
         data = self._get(f"/bundle/{coin}", params={"timeframes": timeframes})
         return BundleResponse.from_dict(data)
+
+    def screener(self, top_n: int = 30) -> ScreenerResponse:
+        """Scan all coins for top signals. Cost: $0.04 USDC.
+
+        Args:
+            top_n: Number of top coins to return (1-30, default: 30)
+
+        Returns:
+            ScreenerResponse with ranked coins and their signals
+        """
+        data = self._get("/screener", params={"top_n": top_n})
+        return ScreenerResponse.from_dict(data)
+
+    def oi(self, coin: str) -> OIResponse:
+        """Get open interest analysis. Cost: $0.01 USDC.
+
+        Args:
+            coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
+
+        Returns:
+            OIResponse with OI delta, percentile, trend, and divergence
+        """
+        data = self._get(f"/oi/{coin}")
+        return OIResponse.from_dict(data)
+
+    def spread(self, coin: str) -> SpreadResponse:
+        """Get spread and liquidity analysis. Cost: $0.008 USDC.
+
+        Args:
+            coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
+
+        Returns:
+            SpreadResponse with spread, slippage estimates, and liquidity score
+        """
+        data = self._get(f"/spread/{coin}")
+        return SpreadResponse.from_dict(data)
+
+    def correlation(self) -> CorrelationResponse:
+        """Get BTC-alt correlation matrix. Cost: $0.03 USDC.
+
+        Returns:
+            CorrelationResponse with correlation matrix, regime, and sectors
+        """
+        data = self._get("/correlation")
+        return CorrelationResponse.from_dict(data)

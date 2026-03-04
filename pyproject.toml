@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cerebrus-pulse"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python SDK for Cerebrus Pulse — real-time crypto intelligence API for Hyperliquid perpetuals"
 readme = "README.md"
 license = "MIT"
