@@ -15,7 +15,7 @@ from cerebrus_pulse.models import (
     ScreenerResponse,
 )
 
-DEFAULT_BASE_URL = "https://cerebruspulse.xyz"
+DEFAULT_BASE_URL = "https://api.cerebruspulse.xyz"
 DEFAULT_TIMEOUT = 30.0
 
 
