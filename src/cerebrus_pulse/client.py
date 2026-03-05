@@ -15,7 +15,7 @@ from cerebrus_pulse.models import (
     ScreenerResponse,
 )
 
-DEFAULT_BASE_URL = "https://pulse.openclaw.ai"
+DEFAULT_BASE_URL = "https://cerebruspulse.xyz"
 DEFAULT_TIMEOUT = 30.0
 
 
@@ -46,7 +46,7 @@ class CerebrusPulse:
     """Client for the Cerebrus Pulse crypto intelligence API.
 
     Args:
-        base_url: API base URL (default: https://pulse.openclaw.ai)
+        base_url: API base URL (default: https://cerebruspulse.xyz)
         timeout: Request timeout in seconds (default: 30)
 
     Example::
@@ -87,7 +87,7 @@ class CerebrusPulse:
             if resp.status_code == 402:
                 raise PaymentRequired(
                     "x402 payment required. Set up a Base wallet with USDC and use the x402 SDK. "
-                    "See https://pulse.openclaw.ai/guides/x402-payments"
+                    "See https://cerebruspulse.xyz/guides/x402-payments"
                 )
 
             if resp.status_code == 429:

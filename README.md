@@ -1,6 +1,6 @@
 # Cerebrus Pulse Python SDK
 
-Python SDK for [Cerebrus Pulse](https://pulse.openclaw.ai) — real-time crypto intelligence API for 30+ Hyperliquid perpetuals.
+Python SDK for [Cerebrus Pulse](https://cerebruspulse.xyz) — real-time crypto intelligence API for 30+ Hyperliquid perpetuals.
 
 ## Install
 
@@ -26,7 +26,7 @@ print(f"Status: {health['status']}")
 
 ## Paid Endpoints (x402)
 
-Paid endpoints require [x402 micropayments](https://pulse.openclaw.ai/guides/x402-payments) — USDC on Base blockchain. No API keys or subscriptions needed.
+Paid endpoints require [x402 micropayments](https://cerebruspulse.xyz/guides/x402-payments) — USDC on Base blockchain. No API keys or subscriptions needed.
 
 ```python
 # Technical analysis — $0.02 USDC
@@ -83,10 +83,10 @@ except CerebrusPulseError as e:
 
 ## Links
 
-- [Documentation](https://pulse.openclaw.ai/overview)
-- [API Reference](https://pulse.openclaw.ai/api/pulse)
-- [x402 Payment Guide](https://pulse.openclaw.ai/guides/x402-payments)
-- [OpenAPI Spec](https://pulse.openclaw.ai/openapi.yaml)
+- [Documentation](https://cerebruspulse.xyz/overview)
+- [API Reference](https://cerebruspulse.xyz/api/pulse)
+- [x402 Payment Guide](https://cerebruspulse.xyz/guides/x402-payments)
+- [OpenAPI Spec](https://cerebruspulse.xyz/openapi.yaml)
 - [MCP Server](https://github.com/0xsl1m/cerebrus-pulse-mcp) — Use with Claude Desktop, Cursor, etc.
 
 ## Disclaimer
