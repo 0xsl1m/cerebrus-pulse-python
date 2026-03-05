@@ -46,7 +46,7 @@ class CerebrusPulse:
     """Client for the Cerebrus Pulse crypto intelligence API.
 
     Args:
-        base_url: API base URL (default: https://cerebruspulse.xyz)
+        base_url: API base URL (default: https://api.cerebruspulse.xyz)
         timeout: Request timeout in seconds (default: 30)
 
     Example::
