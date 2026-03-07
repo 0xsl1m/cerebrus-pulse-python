@@ -1,6 +1,6 @@
 # Cerebrus Pulse Python SDK
 
-Python SDK for [Cerebrus Pulse](https://cerebruspulse.xyz) — real-time crypto intelligence API for 30+ Hyperliquid perpetuals.
+Python SDK for [Cerebrus Pulse](https://cerebruspulse.xyz) — real-time crypto intelligence API for 50+ Hyperliquid perpetuals. Pay with USDC on Base or Solana via x402.
 
 ## Install
 
@@ -26,7 +26,7 @@ print(f"Status: {health['status']}")
 
 ## Paid Endpoints (x402)
 
-Paid endpoints require [x402 micropayments](https://cerebruspulse.xyz/guides/x402-payments) — USDC on Base blockchain. No API keys or subscriptions needed.
+Paid endpoints require [x402 micropayments](https://cerebruspulse.xyz/guides/x402-payments) — USDC on Base or Solana. No API keys or subscriptions needed.
 
 ```python
 # Technical analysis — $0.02 USDC
@@ -45,11 +45,19 @@ print(f"Market: {sentiment.overall} (score: {sentiment.score})")
 funding = client.funding("ETH", lookback_hours=48)
 print(f"ETH funding: {funding.annualized_pct}% annualized")
 
-# Bundle (all data, 20% discount) — $0.04 USDC
+# Bundle (all data, 17% discount) — $0.04 USDC
 bundle = client.bundle("SOL")
 print(f"SOL price: ${bundle.pulse.price}")
 print(f"Sentiment: {bundle.sentiment.overall}")
 print(f"Funding: {bundle.funding.annualized_pct}%")
+
+# Market Stress Index — $0.02 USDC
+stress = client.arb()
+print(f"Stress: {stress.stress_level} ({stress.stress_score:.2f})")
+
+# CEX-DEX divergence — $0.01 USDC
+div = client.cex_dex("ETH")
+print(f"ETH divergence: {div.divergence_bps} bps ({div.direction})")
 ```
 
 ## Response Models
@@ -60,6 +68,8 @@ All paid endpoints return typed dataclass objects:
 - `SentimentResponse` — Overall sentiment, fear/greed, momentum, funding bias
 - `FundingResponse` — Current rate, historical stats, rate history
 - `BundleResponse` — All three combined
+- `ArbResponse` — Market Stress Index with stress level and score
+- `CexDexResponse` — CEX-DEX divergence with basis points and direction
 
 Access raw JSON via the `.raw` attribute on any response.
 
