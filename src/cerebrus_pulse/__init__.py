@@ -10,6 +10,10 @@ from cerebrus_pulse.models import (
     SpreadResponse,
     CorrelationResponse,
     ScreenerResponse,
+    StressResponse,
+    CexDexResponse,
+    BasisResponse,
+    DepegResponse,
     Confluence,
     Regime,
     Derivatives,
@@ -18,7 +22,7 @@ from cerebrus_pulse.models import (
     Bollinger,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
     "CerebrusPulse",
     "PulseResponse",
@@ -29,6 +33,10 @@ __all__ = [
     "SpreadResponse",
     "CorrelationResponse",
     "ScreenerResponse",
+    "StressResponse",
+    "CexDexResponse",
+    "BasisResponse",
+    "DepegResponse",
     "Confluence",
     "Regime",
     "Derivatives",

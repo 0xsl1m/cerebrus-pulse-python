@@ -417,6 +417,189 @@ class ScreenerResponse:
 
 
 @dataclass
+class StressIndex:
+    level: str  # LOW, MODERATE, HIGH, EXTREME
+    score: float  # 0.0-1.0
+    interpretation: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> StressIndex:
+        return cls(
+            level=d.get("level", "LOW"),
+            score=d.get("score", 0.0),
+            interpretation=d.get("interpretation", ""),
+        )
+
+
+@dataclass
+class StressStatistics:
+    scans_analyzed: int
+    total_opportunities: int
+    total_profitable: int
+    avg_spread_bps: float
+    max_spread_bps: float
+    unique_tokens_involved: list[str]
+    chain_routes: list[str]
+
+    @classmethod
+    def from_dict(cls, d: dict) -> StressStatistics:
+        return cls(
+            scans_analyzed=d.get("scans_analyzed", 0),
+            total_opportunities=d.get("total_opportunities", 0),
+            total_profitable=d.get("total_profitable", 0),
+            avg_spread_bps=d.get("avg_spread_bps", 0),
+            max_spread_bps=d.get("max_spread_bps", 0),
+            unique_tokens_involved=d.get("unique_tokens_involved", []),
+            chain_routes=d.get("chain_routes", []),
+        )
+
+
+@dataclass
+class StressResponse:
+    timestamp_iso: str
+    stress_index: StressIndex
+    statistics: StressStatistics
+    recent_scans: list[dict[str, Any]]
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> StressResponse:
+        return cls(
+            timestamp_iso=d.get("timestamp_iso", ""),
+            stress_index=StressIndex.from_dict(d.get("stress_index", {})),
+            statistics=StressStatistics.from_dict(d.get("statistics", {})),
+            recent_scans=d.get("recent_scans", []),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
+class Divergence:
+    cex_price: float
+    dex_price: float
+    dex_source: str
+    spread_bps: float
+    spread_pct: float
+    direction: str  # cex_premium or dex_premium
+    interpretation: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> Divergence:
+        return cls(
+            cex_price=d.get("cex_price", 0),
+            dex_price=d.get("dex_price", 0),
+            dex_source=d.get("dex_source", "unknown"),
+            spread_bps=d.get("spread_bps", 0),
+            spread_pct=d.get("spread_pct", 0),
+            direction=d.get("direction", "unknown"),
+            interpretation=d.get("interpretation", ""),
+        )
+
+
+@dataclass
+class CexDexResponse:
+    token: str
+    timestamp_iso: str
+    divergence: Divergence
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> CexDexResponse:
+        return cls(
+            token=d.get("token", ""),
+            timestamp_iso=d.get("timestamp_iso", ""),
+            divergence=Divergence.from_dict(d.get("divergence", {})),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
+class BasisData:
+    hl_oracle_px: float
+    chainlink_spot_px: float
+    basis_bps: float
+    basis_pct: float
+    direction: str  # hl_premium, hl_discount, aligned
+    signal: str  # neutral, mildly_bullish, mildly_bearish, bearish_contrarian, bullish_contrarian
+    interpretation: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> BasisData:
+        return cls(
+            hl_oracle_px=d.get("hl_oracle_px", 0),
+            chainlink_spot_px=d.get("chainlink_spot_px", 0),
+            basis_bps=d.get("basis_bps", 0),
+            basis_pct=d.get("basis_pct", 0),
+            direction=d.get("direction", "aligned"),
+            signal=d.get("signal", "neutral"),
+            interpretation=d.get("interpretation", ""),
+        )
+
+
+@dataclass
+class BasisResponse:
+    coin: str
+    timestamp_iso: str
+    basis: BasisData
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> BasisResponse:
+        return cls(
+            coin=d.get("coin", ""),
+            timestamp_iso=d.get("timestamp_iso", ""),
+            basis=BasisData.from_dict(d.get("basis", {})),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
+class UsdcHealth:
+    price_usd: float
+    deviation_bps: float
+    deviation_pct: float
+    peg_status: str  # HEALTHY, ELEVATED, WARNING, CRITICAL
+    risk_level: str  # low, medium, high, critical
+    interpretation: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> UsdcHealth:
+        return cls(
+            price_usd=d.get("price_usd", 1.0),
+            deviation_bps=d.get("deviation_bps", 0),
+            deviation_pct=d.get("deviation_pct", 0),
+            peg_status=d.get("peg_status", "HEALTHY"),
+            risk_level=d.get("risk_level", "low"),
+            interpretation=d.get("interpretation", ""),
+        )
+
+
+@dataclass
+class DepegResponse:
+    timestamp_iso: str
+    usdc: UsdcHealth
+    infrastructure: dict[str, Any]
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> DepegResponse:
+        return cls(
+            timestamp_iso=d.get("timestamp_iso", ""),
+            usdc=UsdcHealth.from_dict(d.get("usdc", {})),
+            infrastructure=d.get("infrastructure", {}),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
 class BundleResponse:
     coin: str
     timestamp_iso: str

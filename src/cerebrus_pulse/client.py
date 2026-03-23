@@ -13,6 +13,10 @@ from cerebrus_pulse.models import (
     SpreadResponse,
     CorrelationResponse,
     ScreenerResponse,
+    StressResponse,
+    CexDexResponse,
+    BasisResponse,
+    DepegResponse,
 )
 
 DEFAULT_BASE_URL = "https://api.cerebruspulse.xyz"
@@ -114,7 +118,7 @@ class CerebrusPulse:
     # ── Paid endpoints (x402) ────────────────────────────────────────────
 
     def pulse(self, coin: str, timeframes: str = "1h,4h") -> PulseResponse:
-        """Get multi-timeframe technical analysis. Cost: $0.02 USDC.
+        """Get multi-timeframe technical analysis. Cost: $0.025 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -145,7 +149,7 @@ class CerebrusPulse:
         return FundingResponse.from_dict(data)
 
     def bundle(self, coin: str, timeframes: str = "1h,4h") -> BundleResponse:
-        """Get complete analysis bundle. Cost: $0.04 USDC (20% discount).
+        """Get complete analysis bundle. Cost: $0.05 USDC (9% discount).
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -158,7 +162,7 @@ class CerebrusPulse:
         return BundleResponse.from_dict(data)
 
     def screener(self, top_n: int = 30) -> ScreenerResponse:
-        """Scan all coins for top signals. Cost: $0.04 USDC.
+        """Scan all coins for top signals. Cost: $0.06 USDC.
 
         Args:
             top_n: Number of top coins to return (1-30, default: 30)
@@ -170,7 +174,7 @@ class CerebrusPulse:
         return ScreenerResponse.from_dict(data)
 
     def oi(self, coin: str) -> OIResponse:
-        """Get open interest analysis. Cost: $0.01 USDC.
+        """Get open interest analysis. Cost: $0.015 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -182,7 +186,7 @@ class CerebrusPulse:
         return OIResponse.from_dict(data)
 
     def spread(self, coin: str) -> SpreadResponse:
-        """Get spread and liquidity analysis. Cost: $0.008 USDC.
+        """Get spread and liquidity analysis. Cost: $0.015 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -194,10 +198,55 @@ class CerebrusPulse:
         return SpreadResponse.from_dict(data)
 
     def correlation(self) -> CorrelationResponse:
-        """Get BTC-alt correlation matrix. Cost: $0.03 USDC.
+        """Get BTC-alt correlation matrix. Cost: $0.05 USDC.
 
         Returns:
             CorrelationResponse with correlation matrix, regime, and sectors
         """
         data = self._get("/correlation")
         return CorrelationResponse.from_dict(data)
+
+    def stress(self, limit: int = 10) -> StressResponse:
+        """Get market stress index from cross-chain arbitrage detection. Cost: $0.015 USDC.
+
+        Args:
+            limit: Number of recent scans to analyze (1-50, default: 10)
+
+        Returns:
+            StressResponse with stress level/score, statistics, and recent scans
+        """
+        data = self._get("/arb", params={"limit": limit})
+        return StressResponse.from_dict(data)
+
+    def cex_dex(self, coin: str) -> CexDexResponse:
+        """Get CEX-DEX price divergence. Cost: $0.02 USDC.
+
+        Args:
+            coin: Coin ticker (e.g., "ETH", "BTC", "LINK")
+
+        Returns:
+            CexDexResponse with divergence direction, spread, and interpretation
+        """
+        data = self._get(f"/cex-dex/{coin}")
+        return CexDexResponse.from_dict(data)
+
+    def basis(self, coin: str) -> BasisResponse:
+        """Get Chainlink basis analysis (HL perp vs Chainlink spot). Cost: $0.02 USDC.
+
+        Args:
+            coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
+
+        Returns:
+            BasisResponse with basis in bps, direction, signal, and interpretation
+        """
+        data = self._get(f"/basis/{coin}")
+        return BasisResponse.from_dict(data)
+
+    def depeg(self) -> DepegResponse:
+        """Get USDC collateral health monitor. Cost: $0.01 USDC.
+
+        Returns:
+            DepegResponse with USDC peg status, deviation, and infrastructure health
+        """
+        data = self._get("/depeg")
+        return DepegResponse.from_dict(data)
