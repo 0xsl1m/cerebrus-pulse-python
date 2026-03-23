@@ -17,6 +17,7 @@ from cerebrus_pulse.models import (
     CexDexResponse,
     BasisResponse,
     DepegResponse,
+    LiquidationsResponse,
 )
 
 DEFAULT_BASE_URL = "https://api.cerebruspulse.xyz"
@@ -250,3 +251,15 @@ class CerebrusPulse:
         """
         data = self._get("/depeg")
         return DepegResponse.from_dict(data)
+
+    def liquidations(self, coin: str) -> LiquidationsResponse:
+        """Get estimated liquidation heatmap. Cost: $0.03 USDC.
+
+        Args:
+            coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
+
+        Returns:
+            LiquidationsResponse with long/short zones, cascade risk, and nearest cluster
+        """
+        data = self._get(f"/liquidations/{coin}")
+        return LiquidationsResponse.from_dict(data)

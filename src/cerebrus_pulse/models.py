@@ -600,6 +600,68 @@ class DepegResponse:
 
 
 @dataclass
+class LiquidationZone:
+    price: float
+    leverage: str
+    estimated_liq_usd: int
+    proximity_pct: float
+
+    @classmethod
+    def from_dict(cls, d: dict) -> LiquidationZone:
+        return cls(
+            price=d.get("price", 0),
+            leverage=d.get("leverage", ""),
+            estimated_liq_usd=d.get("estimated_liq_usd", 0),
+            proximity_pct=d.get("proximity_pct", 0),
+        )
+
+
+@dataclass
+class LiquidationSummary:
+    cascade_risk: str  # LOW, MODERATE, HIGH, EXTREME
+    total_oi_usd: int
+    long_short_ratio: str
+    total_at_risk_5pct: int
+    nearest_cluster: dict[str, Any] | None
+
+    @classmethod
+    def from_dict(cls, d: dict) -> LiquidationSummary:
+        return cls(
+            cascade_risk=d.get("cascade_risk", "UNKNOWN"),
+            total_oi_usd=d.get("total_oi_usd", 0),
+            long_short_ratio=d.get("long_short_ratio", "50:50"),
+            total_at_risk_5pct=d.get("total_at_risk_5pct", 0),
+            nearest_cluster=d.get("nearest_cluster"),
+        )
+
+
+@dataclass
+class LiquidationsResponse:
+    coin: str
+    timestamp_iso: str
+    price: float | None
+    long_zones: list[LiquidationZone]
+    short_zones: list[LiquidationZone]
+    summary: LiquidationSummary
+    meta: dict[str, Any]
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> LiquidationsResponse:
+        zones = d.get("liquidation_zones", {})
+        return cls(
+            coin=d.get("coin", ""),
+            timestamp_iso=d.get("timestamp_iso", ""),
+            price=d.get("price"),
+            long_zones=[LiquidationZone.from_dict(z) for z in zones.get("longs", [])],
+            short_zones=[LiquidationZone.from_dict(z) for z in zones.get("shorts", [])],
+            summary=LiquidationSummary.from_dict(d.get("summary", {})),
+            meta=d.get("meta", {}),
+            raw=d,
+        )
+
+
+@dataclass
 class BundleResponse:
     coin: str
     timestamp_iso: str
