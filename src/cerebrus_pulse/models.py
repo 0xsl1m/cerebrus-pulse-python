@@ -673,17 +673,51 @@ class BundleResponse:
 
     @classmethod
     def from_dict(cls, d: dict) -> BundleResponse:
-        # Bundle wraps pulse/sentiment/funding under their keys
-        pulse_data = d.get("pulse", {})
-        pulse_data["coin"] = d.get("coin", "")
-        pulse_data["timestamp_iso"] = d.get("timestamp_iso", "")
+        # Bundle response has pulse data at top level (timeframes, confluence, etc.)
+        # and sentiment/funding as nested keys
+        coin = d.get("coin", "")
+        ts = d.get("timestamp_iso", "")
 
-        sentiment_data = {"sentiment": d.get("sentiment", {}), "timestamp_iso": d.get("timestamp_iso", "")}
-        funding_data = {"funding": d.get("funding", {}), "coin": d.get("coin", ""), "timestamp_iso": d.get("timestamp_iso", "")}
+        # Pulse data lives at the top level of the bundle response
+        pulse_data = dict(d)  # shallow copy to avoid mutating input
+        pulse_data.setdefault("coin", coin)
+        pulse_data.setdefault("timestamp_iso", ts)
+
+        # Sentiment: engine returns {"label": ..., "as_of": ...} under "sentiment"
+        # SentimentResponse.from_dict expects {"sentiment": {"overall": ..., "score": ...}}
+        raw_sent = d.get("sentiment", {})
+        sentiment_data = {
+            "sentiment": {
+                "overall": raw_sent.get("label", "unknown"),
+                "score": 0,
+                "labels": {
+                    "fear_greed": raw_sent.get("label", "unknown"),
+                    "momentum": "unknown",
+                    "funding_bias": "unknown",
+                },
+            },
+            "timestamp_iso": ts,
+        }
+
+        # Funding: engine returns under "funding_24h" (not "funding")
+        raw_fund = d.get("funding_24h", d.get("funding", {}))
+        funding_data = {
+            "funding": {
+                "current_rate": raw_fund.get("current", 0),
+                "annualized_pct": raw_fund.get("annualized_pct", 0),
+                "lookback_hours": raw_fund.get("lookback_hours", 24),
+                "average_rate": raw_fund.get("avg_funding_rate", 0),
+                "max_rate": raw_fund.get("max", 0),
+                "min_rate": raw_fund.get("min", 0),
+                "history": [],
+            },
+            "coin": coin,
+            "timestamp_iso": ts,
+        }
 
         return cls(
-            coin=d.get("coin", ""),
-            timestamp_iso=d.get("timestamp_iso", ""),
+            coin=coin,
+            timestamp_iso=ts,
             pulse=PulseResponse.from_dict(pulse_data),
             sentiment=SentimentResponse.from_dict(sentiment_data),
             funding=FundingResponse.from_dict(funding_data),
