@@ -29,13 +29,35 @@ print(f"Status: {health['status']}")
 Paid endpoints require [x402 micropayments](https://cerebruspulse.xyz/guides/x402-payments) — USDC on Base or Solana. No API keys or subscriptions needed.
 
 ```python
-# Technical analysis — $0.02 USDC
+# Technical analysis — $0.025 USDC
 pulse = client.pulse("BTC", timeframes="1h,4h")
 print(f"Price: ${pulse.price}")
 print(f"RSI (1h): {pulse.timeframes['1h'].indicators.rsi_14}")
 print(f"Trend: {pulse.timeframes['1h'].indicators.trend.label}")
 print(f"Confluence: {pulse.confluence.score} ({pulse.confluence.bias})")
-print(f"Regime: {pulse.regime.current}")
+
+# Liquidation heatmap — $0.03 USDC
+liq = client.liquidations("BTC")
+print(f"Cascade risk: {liq.summary.cascade_risk}")
+print(f"Nearest cluster: {liq.summary.nearest_cluster}")
+for zone in liq.long_zones[:3]:
+    print(f"  Long liq at ${zone.price} ({zone.leverage}) — ${zone.estimated_liq_usd:,}")
+
+# Market stress index — $0.015 USDC
+stress = client.stress()
+print(f"Stress: {stress.stress_index.level} ({stress.stress_index.score:.2f})")
+
+# CEX-DEX divergence — $0.02 USDC
+div = client.cex_dex("ETH")
+print(f"ETH divergence: {div.divergence.spread_bps} bps ({div.divergence.direction})")
+
+# Chainlink basis — $0.02 USDC
+basis = client.basis("BTC")
+print(f"BTC basis: {basis.basis.basis_bps} bps — {basis.basis.signal}")
+
+# USDC depeg monitor — $0.01 USDC
+depeg = client.depeg()
+print(f"USDC: {depeg.usdc.peg_status} ({depeg.usdc.deviation_bps} bps)")
 
 # Sentiment — $0.01 USDC
 sentiment = client.sentiment()
@@ -45,19 +67,14 @@ print(f"Market: {sentiment.overall} (score: {sentiment.score})")
 funding = client.funding("ETH", lookback_hours=48)
 print(f"ETH funding: {funding.annualized_pct}% annualized")
 
-# Bundle (all data, 17% discount) — $0.04 USDC
+# Screener — $0.06 USDC
+screen = client.screener(top_n=10)
+for coin in screen.results:
+    print(f"{coin.coin}: RSI={coin.rsi_14}, trend={coin.trend}")
+
+# Bundle (all data, 9% discount) — $0.05 USDC
 bundle = client.bundle("SOL")
 print(f"SOL price: ${bundle.pulse.price}")
-print(f"Sentiment: {bundle.sentiment.overall}")
-print(f"Funding: {bundle.funding.annualized_pct}%")
-
-# Market Stress Index — $0.02 USDC
-stress = client.arb()
-print(f"Stress: {stress.stress_level} ({stress.stress_score:.2f})")
-
-# CEX-DEX divergence — $0.01 USDC
-div = client.cex_dex("ETH")
-print(f"ETH divergence: {div.divergence_bps} bps ({div.direction})")
 ```
 
 ## Response Models
@@ -65,11 +82,18 @@ print(f"ETH divergence: {div.divergence_bps} bps ({div.direction})")
 All paid endpoints return typed dataclass objects:
 
 - `PulseResponse` — Technical indicators, derivatives, regime, confluence
+- `LiquidationsResponse` — Long/short liquidation zones, cascade risk, nearest cluster
+- `StressResponse` — Market stress index with level, score, and scan statistics
+- `CexDexResponse` — CEX-DEX divergence with spread bps and direction
+- `BasisResponse` — Chainlink basis with signal and interpretation
+- `DepegResponse` — USDC peg status, deviation, infrastructure health
 - `SentimentResponse` — Overall sentiment, fear/greed, momentum, funding bias
 - `FundingResponse` — Current rate, historical stats, rate history
-- `BundleResponse` — All three combined
-- `ArbResponse` — Market Stress Index with stress level and score
-- `CexDexResponse` — CEX-DEX divergence with basis points and direction
+- `OIResponse` — Open interest delta, percentile, trend, divergence
+- `SpreadResponse` — Bid-ask spread, slippage estimates, liquidity score
+- `CorrelationResponse` — BTC-alt correlation matrix, regime, sector averages
+- `ScreenerResponse` — Multi-coin scan with signals and confluence
+- `BundleResponse` — Pulse + sentiment + funding combined
 
 Access raw JSON via the `.raw` attribute on any response.
 
@@ -96,8 +120,8 @@ except CerebrusPulseError as e:
 - [Documentation](https://cerebruspulse.xyz/overview)
 - [API Reference](https://cerebruspulse.xyz/api/pulse)
 - [x402 Payment Guide](https://cerebruspulse.xyz/guides/x402-payments)
-- [OpenAPI Spec](https://cerebruspulse.xyz/openapi.yaml)
 - [MCP Server](https://github.com/0xsl1m/cerebrus-pulse-mcp) — Use with Claude Desktop, Cursor, etc.
+- [LangChain Tools](https://github.com/0xsl1m/langchain-cerebrus-pulse)
 
 ## Disclaimer
 
