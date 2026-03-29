@@ -1,5 +1,7 @@
 # Cerebrus Pulse Python SDK
 
+[![PyPI](https://img.shields.io/pypi/v/cerebrus-pulse)](https://pypi.org/project/cerebrus-pulse/) [![Downloads](https://img.shields.io/pypi/dm/cerebrus-pulse)](https://pypi.org/project/cerebrus-pulse/) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 Python SDK for [Cerebrus Pulse](https://cerebruspulse.xyz) — real-time crypto intelligence API for 50+ Hyperliquid perpetuals. Pay with USDC on Base or Solana via x402.
 
 ## Install
