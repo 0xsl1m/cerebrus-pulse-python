@@ -1,6 +1,15 @@
 """Cerebrus Pulse Python SDK — real-time crypto intelligence for Hyperliquid perpetuals."""
 
-from cerebrus_pulse.client import CerebrusPulse
+from cerebrus_pulse.client import (
+    CerebrusPulse,
+    CerebrusPulseError,
+    PaymentBlocked,
+    PaymentFailed,
+    PaymentRejected,
+    PaymentRequired,
+    RateLimited,
+)
+from cerebrus_pulse.payment import PaymentTerms, SpendGuard
 from cerebrus_pulse.models import (
     PulseResponse,
     SentimentResponse,
@@ -26,6 +35,14 @@ from cerebrus_pulse.models import (
 __version__ = "0.3.2"
 __all__ = [
     "CerebrusPulse",
+    "CerebrusPulseError",
+    "PaymentRequired",
+    "PaymentBlocked",
+    "PaymentRejected",
+    "PaymentFailed",
+    "RateLimited",
+    "PaymentTerms",
+    "SpendGuard",
     "PulseResponse",
     "SentimentResponse",
     "FundingResponse",

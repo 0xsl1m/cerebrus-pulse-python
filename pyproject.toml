@@ -28,6 +28,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Automatic x402 payment in USDC on Base (x402 v2, PAYMENT-SIGNATURE).
+pay = [
+    "x402[evm]>=2.20,<3",  # 2.20 added client spend_controls
+    "eth-account>=0.13",
+]
+# Also pay in USDC on Solana; use together with pay: cerebrus-pulse[pay,svm].
+# solana 0.40+ dropped solana.rpc.api, which the x402 SVM client imports, and
+# x402 declares solana without an upper bound, so pin the last working line.
+svm = [
+    "x402[svm]>=2.20,<3",
+    "solana>=0.36,<0.37",
+    "solders>=0.27,<0.28",
+]
 test = [
     "pytest>=8",
 ]
