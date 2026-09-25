@@ -34,6 +34,31 @@ from cerebrus_pulse.payment import (
 DEFAULT_BASE_URL = "https://api.cerebruspulse.xyz"
 DEFAULT_TIMEOUT = 30.0
 
+# What each paid method cost per call when this release was cut: the API's
+# /.well-known/x402 manifest on 2026-09-24. INDICATIVE ONLY. The API sets the
+# price, the 402 terms say what is charged, and max_payment_usd caps it.
+INDICATIVE_PRICES_USD: dict[str, Decimal] = {
+    "pulse": Decimal("0.025"),
+    "sentiment": Decimal("0.01"),
+    "funding": Decimal("0.01"),
+    "bundle": Decimal("0.05"),
+    "screener": Decimal("0.06"),
+    "oi": Decimal("0.015"),
+    "spread": Decimal("0.015"),
+    "correlation": Decimal("0.05"),
+    "stress": Decimal("0.02"),
+    "cex_dex": Decimal("0.02"),
+    "basis": Decimal("0.02"),
+    "depeg": Decimal("0.01"),
+    "liquidations": Decimal("0.03"),
+}
+
+
+def _user_agent() -> str:
+    from cerebrus_pulse import __version__
+
+    return f"cerebrus-pulse-python/{__version__}"
+
 
 class CerebrusPulseError(Exception):
     """Base exception for Cerebrus Pulse errors."""
@@ -94,7 +119,9 @@ class CerebrusPulse:
     Without a wallet, paid endpoints raise :class:`PaymentRequired` carrying
     the API's payment terms. With the ``[pay]`` extra installed and a wallet
     key, they pay automatically in USDC over x402, inside client-side spend
-    limits (see :mod:`cerebrus_pulse.payment`).
+    limits (see :mod:`cerebrus_pulse.payment`). The per-call costs in the
+    method docs are indicative (:data:`INDICATIVE_PRICES_USD`); the price in
+    the API's 402 terms is what is charged.
 
     Args:
         base_url: API base URL (default: https://api.cerebruspulse.xyz)
@@ -172,7 +199,7 @@ class CerebrusPulse:
         return httpx.Client(
             base_url=self._base_url,
             timeout=self._timeout,
-            headers={"User-Agent": "cerebrus-pulse-python/0.1.0"},
+            headers={"User-Agent": _user_agent()},
             transport=self._transport,
         )
 
@@ -229,11 +256,11 @@ class CerebrusPulse:
     # ── Paid endpoints (x402) ────────────────────────────────────────────
 
     def pulse(self, coin: str, timeframes: str = "1h,4h") -> PulseResponse:
-        """Get multi-timeframe technical analysis. Cost: $0.025 USDC.
+        """Get multi-timeframe technical analysis. Indicative cost: $0.025 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
-            timeframes: Comma-separated timeframes (15m, 1h, 4h)
+            timeframes: Comma-separated timeframes (5m, 15m, 1h, 4h, 1d, 1w)
 
         Returns:
             PulseResponse with indicators, derivatives, regime, confluence
@@ -242,7 +269,7 @@ class CerebrusPulse:
         return PulseResponse.from_dict(data)
 
     def sentiment(self) -> SentimentResponse:
-        """Get the bucketed market sentiment label. Cost: $0.01 USDC.
+        """Get the bucketed market sentiment label. Indicative cost: $0.01 USDC.
 
         Returns:
             SentimentResponse with ``label`` (very_bearish ... very_bullish) and ``as_of``
@@ -251,7 +278,7 @@ class CerebrusPulse:
         return SentimentResponse.from_dict(data)
 
     def funding(self, coin: str, lookback_hours: int = 24) -> FundingResponse:
-        """Get funding rate analysis. Cost: $0.01 USDC.
+        """Get funding rate analysis. Indicative cost: $0.01 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -265,11 +292,11 @@ class CerebrusPulse:
         return FundingResponse.from_dict(data)
 
     def bundle(self, coin: str, timeframes: str = "1h,4h") -> BundleResponse:
-        """Get complete analysis bundle. Cost: $0.05 USDC (9% discount).
+        """Get pulse, sentiment and funding for a coin in one call. Indicative cost: $0.05 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
-            timeframes: Comma-separated timeframes (15m, 1h, 4h)
+            timeframes: Comma-separated timeframes (5m, 15m, 1h, 4h, 1d, 1w)
 
         Returns:
             BundleResponse with pulse, sentiment, and funding data
@@ -278,10 +305,10 @@ class CerebrusPulse:
         return BundleResponse.from_dict(data)
 
     def screener(self, top_n: int = 30) -> ScreenerResponse:
-        """Scan all coins for top signals. Cost: $0.06 USDC.
+        """Scan all coins for top signals. Indicative cost: $0.06 USDC.
 
         Args:
-            top_n: Number of top coins to return (1-30, default: 30)
+            top_n: Number of top coins to return (1-50, default: 30)
 
         Returns:
             ScreenerResponse with ranked coins and their signals
@@ -290,7 +317,7 @@ class CerebrusPulse:
         return ScreenerResponse.from_dict(data)
 
     def oi(self, coin: str) -> OIResponse:
-        """Get open interest analysis. Cost: $0.015 USDC.
+        """Get open interest analysis. Indicative cost: $0.015 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -302,7 +329,7 @@ class CerebrusPulse:
         return OIResponse.from_dict(data)
 
     def spread(self, coin: str) -> SpreadResponse:
-        """Get spread and liquidity analysis. Cost: $0.015 USDC.
+        """Get spread and liquidity analysis. Indicative cost: $0.015 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -314,7 +341,7 @@ class CerebrusPulse:
         return SpreadResponse.from_dict(data)
 
     def correlation(self) -> CorrelationResponse:
-        """Get BTC-alt correlation matrix. Cost: $0.05 USDC.
+        """Get BTC-alt correlation matrix. Indicative cost: $0.05 USDC.
 
         Returns:
             CorrelationResponse with correlation matrix, regime, and sectors
@@ -323,7 +350,7 @@ class CerebrusPulse:
         return CorrelationResponse.from_dict(data)
 
     def stress(self, limit: int = 10) -> StressResponse:
-        """Get market stress index from cross-chain arbitrage detection. Cost: $0.015 USDC.
+        """Get market stress index from cross-chain arbitrage detection. Indicative cost: $0.02 USDC.
 
         Args:
             limit: Number of recent scans to analyze (1-50, default: 10)
@@ -335,7 +362,7 @@ class CerebrusPulse:
         return StressResponse.from_dict(data)
 
     def cex_dex(self, coin: str) -> CexDexResponse:
-        """Get CEX-DEX price divergence. Cost: $0.02 USDC.
+        """Get CEX-DEX price divergence. Indicative cost: $0.02 USDC.
 
         Args:
             coin: Coin ticker (e.g., "ETH", "BTC", "LINK")
@@ -347,7 +374,7 @@ class CerebrusPulse:
         return CexDexResponse.from_dict(data)
 
     def basis(self, coin: str) -> BasisResponse:
-        """Get Chainlink basis analysis (HL perp vs Chainlink spot). Cost: $0.02 USDC.
+        """Get Chainlink basis analysis (HL perp vs Chainlink spot). Indicative cost: $0.02 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")
@@ -359,7 +386,7 @@ class CerebrusPulse:
         return BasisResponse.from_dict(data)
 
     def depeg(self) -> DepegResponse:
-        """Get USDC collateral health monitor. Cost: $0.01 USDC.
+        """Get USDC collateral health monitor. Indicative cost: $0.01 USDC.
 
         Returns:
             DepegResponse with USDC peg status, deviation, and infrastructure health
@@ -368,7 +395,7 @@ class CerebrusPulse:
         return DepegResponse.from_dict(data)
 
     def liquidations(self, coin: str) -> LiquidationsResponse:
-        """Get estimated liquidation heatmap. Cost: $0.03 USDC.
+        """Get estimated liquidation heatmap. Indicative cost: $0.03 USDC.
 
         Args:
             coin: Coin ticker (e.g., "BTC", "ETH", "SOL")

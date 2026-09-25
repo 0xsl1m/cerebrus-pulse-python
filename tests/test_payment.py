@@ -379,7 +379,10 @@ def test_x402_client_and_a_key_are_mutually_exclusive():
 def test_user_agent_is_sent():
     api = FakeAPI(unpaid=lambda req: httpx.Response(200, json={"status": "ok"}))
     make_client(api).health()
-    assert api.requests[0].headers["User-Agent"].startswith("cerebrus-pulse-python/")
+    import cerebrus_pulse
+
+    assert api.requests[0].headers["User-Agent"] == f"cerebrus-pulse-python/{cerebrus_pulse.__version__}"
+    assert cerebrus_pulse.__version__ != "0.1.0"
 
 
 # ── Solana (optional svm extra) ─────────────────────────────────────────────
