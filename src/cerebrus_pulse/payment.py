@@ -38,7 +38,7 @@ from typing import Any, Callable, Iterable
 # The published Base payTo of api.cerebruspulse.xyz. Auto-pay refuses any other
 # payee unless CEREBRUS_ALLOWED_PAYTO (or allowed_pay_to=) says otherwise.
 # This default MUST be updated whenever the gateway's payTo address is rotated.
-DEFAULT_ALLOWED_PAYTO = "0xfDFB12764c76B5113153acaa2317081F4Abc2a88"
+DEFAULT_ALLOWED_PAYTO = "0x62b2c8ec710FD40A0139e22605D472e3767fd8f6"
 # No Solana payee is trusted by default: set CEREBRUS_ALLOWED_PAYTO_SOLANA (or
 # allowed_pay_to_solana=) to the Solana payTo the API quotes to enable it.
 DEFAULT_ALLOWED_PAYTO_SOLANA = ""

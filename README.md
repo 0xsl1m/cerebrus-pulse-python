@@ -76,7 +76,7 @@ Every payment is checked before it is signed. A refused payment raises `PaymentB
 |---|---|---|
 | `max_payment_usd` / `CEREBRUS_MAX_PAYMENT_USD` | `0.10` | Most one call may cost. The priciest endpoint is $0.06. |
 | `max_spend_usd` / `CEREBRUS_MAX_SPEND_USD` | `1.00` | Total one client may sign. Every signed payment counts, even one the API rejects. |
-| `allowed_pay_to` / `CEREBRUS_ALLOWED_PAYTO` | `0xfDFB12764c76B5113153acaa2317081F4Abc2a88` | Base addresses the SDK will pay (comma-separated). The default is the API's published Base payTo. If the API ever changes it, payments are refused until you upgrade the SDK or set this. |
+| `allowed_pay_to` / `CEREBRUS_ALLOWED_PAYTO` | `0x62b2c8ec710FD40A0139e22605D472e3767fd8f6` | Base addresses the SDK will pay (comma-separated). The default is the API's published Base payTo. If the API ever changes it, payments are refused until you upgrade the SDK or set this. |
 | `allowed_pay_to_solana` / `CEREBRUS_ALLOWED_PAYTO_SOLANA` | none | Solana addresses the SDK will pay. Empty means Solana is never paid. |
 
 Arguments win over environment variables. Only USDC is paid, only x402 v2 terms are paid, and a malformed setting raises `ValueError` instead of lifting a limit.
