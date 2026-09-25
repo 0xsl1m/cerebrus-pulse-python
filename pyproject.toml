@@ -50,3 +50,7 @@ Homepage = "https://cerebruspulse.xyz"
 Documentation = "https://cerebruspulse.xyz/guides/python-sdk"
 Repository = "https://github.com/0xsl1m/cerebrus-pulse-python"
 Issues = "https://github.com/0xsl1m/cerebrus-pulse-python/issues"
+
+# hatch_build.py refuses to build a release while DEFAULT_ALLOWED_PAYTO is a
+# payTo being replaced. Editable installs are not checked.
+[tool.hatch.build.hooks.custom]
