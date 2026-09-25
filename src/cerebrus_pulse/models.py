@@ -185,68 +185,68 @@ class PulseResponse:
 
 @dataclass
 class SentimentResponse:
-    overall: str
-    score: float
-    fear_greed: str
-    momentum: str
-    funding_bias: str
-    timestamp_iso: str
+    """Market-wide sentiment as the API returns it: {"sentiment": {"label", "as_of"}}.
+
+    The API publishes a bucketed label only (very_bearish, bearish, neutral,
+    bullish, very_bullish, or unknown when its feed is missing); raw scores are
+    withheld by design. Fields the response lacks are None, never a made-up
+    default.
+    """
+
+    label: str | None
+    as_of: float | None  # Unix time of the sentiment reading (0 when unknown)
     meta: dict[str, Any]
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
     def from_dict(cls, d: dict) -> SentimentResponse:
-        s = d.get("sentiment", {})
-        labels = s.get("labels", {})
+        s = d.get("sentiment") or {}
         return cls(
-            overall=s.get("overall", "unknown"),
-            score=s.get("score", 0),
-            fear_greed=labels.get("fear_greed", "unknown"),
-            momentum=labels.get("momentum", "unknown"),
-            funding_bias=labels.get("funding_bias", "unknown"),
-            timestamp_iso=d.get("timestamp_iso", ""),
+            label=s.get("label"),
+            as_of=s.get("as_of"),
             meta=d.get("meta", {}),
             raw=d,
         )
 
-
-@dataclass
-class FundingSnapshot:
-    timestamp: int
-    rate: float
+    @property
+    def overall(self) -> str | None:
+        """Alias of ``label``, the attribute name used before 0.4.0."""
+        return self.label
 
 
 @dataclass
 class FundingResponse:
+    """Funding-rate statistics over ``lookback_hours``, as the API returns them.
+
+    The response is flat: current, avg_funding_rate, min, max, annualized_pct,
+    lookback_hours, records and positive_pct. There is no per-interval history.
+    Fields the response lacks are None, never 0.
+    """
+
     coin: str
-    current_rate: float
-    annualized_pct: float
-    lookback_hours: int
-    average_rate: float
-    max_rate: float
-    min_rate: float
-    history: list[FundingSnapshot]
-    timestamp_iso: str
+    current_rate: float | None  # "current": the latest rate in the window
+    annualized_pct: float | None
+    lookback_hours: int | None
+    average_rate: float | None  # "avg_funding_rate"
+    max_rate: float | None  # "max"
+    min_rate: float | None  # "min"
+    records: int | None  # number of funding samples in the window
+    positive_pct: float | None  # share of samples with a positive rate, 0-100
     meta: dict[str, Any]
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
     def from_dict(cls, d: dict) -> FundingResponse:
-        f = d.get("funding", {})
-        history = [
-            FundingSnapshot(timestamp=h.get("timestamp", 0), rate=h.get("rate", 0))
-            for h in f.get("history", [])
-        ]
         return cls(
             coin=d.get("coin", ""),
-            current_rate=f.get("current_rate", 0),
-            annualized_pct=f.get("annualized_pct", 0),
-            lookback_hours=f.get("lookback_hours", 24),
-            average_rate=f.get("average_rate", 0),
-            max_rate=f.get("max_rate", 0),
-            min_rate=f.get("min_rate", 0),
-            history=history,
-            timestamp_iso=d.get("timestamp_iso", ""),
+            current_rate=d.get("current"),
+            annualized_pct=d.get("annualized_pct"),
+            lookback_hours=d.get("lookback_hours"),
+            average_rate=d.get("avg_funding_rate"),
+            max_rate=d.get("max"),
+            min_rate=d.get("min"),
+            records=d.get("records"),
+            positive_pct=d.get("positive_pct"),
             meta=d.get("meta", {}),
             raw=d,
         )
@@ -683,37 +683,13 @@ class BundleResponse:
         pulse_data.setdefault("coin", coin)
         pulse_data.setdefault("timestamp_iso", ts)
 
-        # Sentiment: engine returns {"label": ..., "as_of": ...} under "sentiment"
-        # SentimentResponse.from_dict expects {"sentiment": {"overall": ..., "score": ...}}
-        raw_sent = d.get("sentiment", {})
-        sentiment_data = {
-            "sentiment": {
-                "overall": raw_sent.get("label", "unknown"),
-                "score": 0,
-                "labels": {
-                    "fear_greed": raw_sent.get("label", "unknown"),
-                    "momentum": "unknown",
-                    "funding_bias": "unknown",
-                },
-            },
-            "timestamp_iso": ts,
-        }
+        # Sentiment: the same {"label", "as_of"} object /sentiment returns
+        sentiment_data = {"sentiment": d.get("sentiment") or {}}
 
-        # Funding: engine returns under "funding_24h" (not "funding")
-        raw_fund = d.get("funding_24h", d.get("funding", {}))
-        funding_data = {
-            "funding": {
-                "current_rate": raw_fund.get("current", 0),
-                "annualized_pct": raw_fund.get("annualized_pct", 0),
-                "lookback_hours": raw_fund.get("lookback_hours", 24),
-                "average_rate": raw_fund.get("avg_funding_rate", 0),
-                "max_rate": raw_fund.get("max", 0),
-                "min_rate": raw_fund.get("min", 0),
-                "history": [],
-            },
-            "coin": coin,
-            "timestamp_iso": ts,
-        }
+        # Funding: the flat /funding object, under "funding_24h". It is
+        # {"note": "unavailable"} when the API has no funding data.
+        funding_data = dict(d.get("funding_24h") or {})
+        funding_data.setdefault("coin", coin)
 
         return cls(
             coin=coin,

@@ -27,6 +27,11 @@ dependencies = [
     "httpx>=0.27.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=8",
+]
+
 [project.urls]
 Homepage = "https://cerebruspulse.xyz"
 Documentation = "https://cerebruspulse.xyz/guides/python-sdk"

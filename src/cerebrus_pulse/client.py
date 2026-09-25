@@ -132,7 +132,11 @@ class CerebrusPulse:
         return PulseResponse.from_dict(data)
 
     def sentiment(self) -> SentimentResponse:
-        """Get market sentiment analysis. Cost: $0.01 USDC."""
+        """Get the bucketed market sentiment label. Cost: $0.01 USDC.
+
+        Returns:
+            SentimentResponse with ``label`` (very_bearish ... very_bullish) and ``as_of``
+        """
         data = self._get("/sentiment")
         return SentimentResponse.from_dict(data)
 
@@ -144,7 +148,8 @@ class CerebrusPulse:
             lookback_hours: Hours of historical data (1-168)
 
         Returns:
-            FundingResponse with current rate, history, and stats
+            FundingResponse with the current, average, min and max rate,
+            annualized %, sample count and share of positive samples
         """
         data = self._get(f"/funding/{coin}", params={"lookback_hours": lookback_hours})
         return FundingResponse.from_dict(data)

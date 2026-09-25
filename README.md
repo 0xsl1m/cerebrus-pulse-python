@@ -86,11 +86,11 @@ print(f"USDC: {depeg.usdc.peg_status} ({depeg.usdc.deviation_bps} bps)")
 
 # Sentiment — $0.01 USDC
 sentiment = client.sentiment()
-print(f"Market: {sentiment.overall} (score: {sentiment.score})")
+print(f"Market: {sentiment.label}")
 
 # Funding rates — $0.01 USDC
 funding = client.funding("ETH", lookback_hours=48)
-print(f"ETH funding: {funding.annualized_pct}% annualized")
+print(f"ETH funding: {funding.current_rate} now, {funding.annualized_pct}% annualized")
 
 # Screener — $0.06 USDC
 screen = client.screener(top_n=10)
@@ -112,8 +112,8 @@ All paid endpoints return typed dataclass objects:
 - `CexDexResponse` — CEX-DEX divergence with spread bps and direction
 - `BasisResponse` — Chainlink basis with signal and interpretation
 - `DepegResponse` — USDC peg status, deviation, infrastructure health
-- `SentimentResponse` — Overall sentiment, fear/greed, momentum, funding bias
-- `FundingResponse` — Current rate, historical stats, rate history
+- `SentimentResponse` — Bucketed market sentiment label (`very_bearish` … `very_bullish`) and its timestamp
+- `FundingResponse` — Current, average, min and max funding rate, annualized %, sample count
 - `OIResponse` — Open interest delta, percentile, trend, divergence
 - `SpreadResponse` — Bid-ask spread, slippage estimates, liquidity score
 - `CorrelationResponse` — BTC-alt correlation matrix, regime, sector averages
