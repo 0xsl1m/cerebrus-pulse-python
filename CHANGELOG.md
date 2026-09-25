@@ -12,7 +12,8 @@
   `CEREBRUS_MAX_SPEND_USD` (default $1.00), and payee allowlists
   `allowed_pay_to` / `CEREBRUS_ALLOWED_PAYTO` (default: the API's published
   Base payTo) and `allowed_pay_to_solana` / `CEREBRUS_ALLOWED_PAYTO_SOLANA`
-  (default: none).
+  (default: none). The limits hold when one client is used from many
+  threads: its paid calls settle one at a time.
 - `PaymentRequired` carries the 402 terms (`.terms`, `.price_usd`), with the
   subclasses `PaymentBlocked`, `PaymentRejected` and `PaymentFailed`.
 - `client.can_pay`, `client.spent_usd`, and `INDICATIVE_PRICES_USD`.

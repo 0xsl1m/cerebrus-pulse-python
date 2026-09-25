@@ -81,6 +81,8 @@ Every payment is checked before it is signed. A refused payment raises `PaymentB
 
 Arguments win over environment variables. Only USDC is paid, only x402 v2 terms are paid, and a malformed setting raises `ValueError` instead of lifting a limit.
 
+One client is safe to share between threads (LangChain runs parallel tool calls in threads, for example). Its paid calls then settle one at a time, so the limits hold.
+
 ### Solana
 
 ```bash

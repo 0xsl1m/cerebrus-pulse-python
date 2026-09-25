@@ -8,6 +8,8 @@ the network and no payment can settle.
 import base64
 import json
 import sys
+import threading
+import time
 from decimal import Decimal
 
 import httpx
@@ -237,6 +239,72 @@ def test_budget_stops_signing_once_reached():
     assert "CEREBRUS_MAX_SPEND_USD" in exc.value.reason
     assert client.spent_usd == Decimal("0.05")
     assert api.paid_flags == [False, True, False, True, False]
+
+
+def _concurrent_pulses(client, n):
+    """Run ``n`` client.pulse() calls in threads; return (results, errors)."""
+    results, errors = [], []
+
+    def call():
+        try:
+            results.append(client.pulse("BTC"))
+        except Exception as e:  # noqa: BLE001
+            errors.append(e)
+
+    threads = [threading.Thread(target=call) for _ in range(n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=30)
+    assert not any(t.is_alive() for t in threads)
+    return results, errors
+
+
+def test_budget_holds_when_one_client_pays_from_many_threads(monkeypatch):
+    # All eight 402s arrive together, and each check is slowed so that, without
+    # a lock, every thread passes the budget check before any payment is counted.
+    barrier = threading.Barrier(8, timeout=10)
+
+    def unpaid(req):
+        barrier.wait()
+        return gateway_402(req.url, offer("0.06"))
+
+    real_policy = SpendGuard.policy
+
+    def slow_policy(self, x402_version, requirements):
+        kept = real_policy(self, x402_version, requirements)
+        time.sleep(0.05)
+        return kept
+
+    monkeypatch.setattr(SpendGuard, "policy", slow_policy)
+    api = FakeAPI(unpaid=unpaid)
+    client = make_client(api, wallet_key=DUMMY_KEY, max_spend_usd="0.10")
+
+    results, errors = _concurrent_pulses(client, 8)
+
+    assert client.spent_usd == Decimal("0.06")
+    assert len(results) == 1
+    assert len(errors) == 7 and all(type(e) is PaymentBlocked for e in errors)
+    assert all("CEREBRUS_MAX_SPEND_USD" in e.reason for e in errors)
+    assert sum(api.paid_flags) == 1
+
+
+def test_concurrent_payments_within_budget_all_succeed():
+    barrier = threading.Barrier(8, timeout=10)
+
+    def unpaid(req):
+        barrier.wait()
+        return gateway_402(req.url)
+
+    api = FakeAPI(unpaid=unpaid)
+    client = make_client(api, wallet_key=DUMMY_KEY)
+
+    results, errors = _concurrent_pulses(client, 8)
+
+    assert errors == []
+    assert len(results) == 8
+    assert client.spent_usd == Decimal("0.200")
+    assert sum(api.paid_flags) == 8
 
 
 def test_zero_budget_never_signs():

@@ -17,6 +17,7 @@ Every payment is checked by a :class:`SpendGuard` before it is signed:
 * ``max_spend_usd`` caps the total one client signs (env
   ``CEREBRUS_MAX_SPEND_USD``, default $1.00). Every signed payment counts,
   even one the API then rejects: a signed authorization can still settle.
+  Paid calls on one client run one at a time, so the cap holds across threads.
 * Only USDC is paid, and only to an allowlisted payTo: on Base, env
   ``CEREBRUS_ALLOWED_PAYTO`` (default :data:`DEFAULT_ALLOWED_PAYTO`); on
   Solana, env ``CEREBRUS_ALLOWED_PAYTO_SOLANA`` (default: none, so Solana is
@@ -29,6 +30,7 @@ import base64
 import json
 import os
 import re
+import threading
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any, Callable, Iterable
@@ -291,7 +293,12 @@ def build_payment_client(guard: SpendGuard, wallet_key: str | None = None,
 
 
 class Payer:
-    """Settles a 402 with the x402 client's own round trip, over the SDK's httpx client."""
+    """Settles a 402 with the x402 client's own round trip, over the SDK's httpx client.
+
+    One payment at a time: the guard's budget check (x402 policy) and its count
+    of the signed amount (after-creation hook) happen inside one round trip, so
+    concurrent round trips could all pass the check before any is counted.
+    """
 
     def __init__(self, x402_client: Any, guard: SpendGuard):
         from x402.http import PaymentRoundTripper, x402HTTPClientSync
@@ -299,6 +306,7 @@ class Payer:
         self.guard = guard
         self._round_tripper = PaymentRoundTripper(x402HTTPClientSync(x402_client))
         self._count = 0
+        self._lock = threading.Lock()
 
     def pay(self, response: Any, retry: Callable[[dict[str, str]], Any]) -> Any:
         """Pay the 402 ``response`` and return the API's answer to the paid retry.
@@ -306,19 +314,20 @@ class Payer:
         ``retry(headers)`` must resend the original request with extra headers.
         Raises PaymentRefused if nothing could be signed within the limits.
         """
-        self.guard.last_refusal = None
-        self._count += 1
-        try:
-            return self._round_tripper.handle_response(
-                request_id=f"cerebrus-pulse-{id(self)}-{self._count}",
-                status_code=response.status_code,
-                headers=dict(response.headers),
-                body=response.content,
-                retry_func=retry,
-                request_url=str(response.request.url),
-            )
-        except Exception as e:  # noqa: BLE001
-            raise PaymentRefused(self._local_refusal(e), e) from e
+        with self._lock:
+            self.guard.last_refusal = None
+            self._count += 1
+            try:
+                return self._round_tripper.handle_response(
+                    request_id=f"cerebrus-pulse-{id(self)}-{self._count}",
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    body=response.content,
+                    retry_func=retry,
+                    request_url=str(response.request.url),
+                )
+            except Exception as e:  # noqa: BLE001
+                raise PaymentRefused(self._local_refusal(e), e) from e
 
     def _local_refusal(self, exc: BaseException) -> str | None:
         """The reason a payment was refused before signing, else None."""
